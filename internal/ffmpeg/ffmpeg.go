@@ -3,6 +3,7 @@ package ffmpeg
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -77,6 +78,12 @@ func (f *ffmpegBuilder) CopyAudio() *ffmpegBuilder {
 // Ex: LimitDuration(30 * time.Second) = 30s
 func (f *ffmpegBuilder) LimitDuration(d time.Duration) *ffmpegBuilder {
 	return f.addArgs("-t", fmtDuration(d))
+}
+
+// CRF define o fator de qualidade do encoder de vídeo.
+// Quanto menor o valor, maior a qualidade e o tamanho do arquivo.
+func (f *ffmpegBuilder) CRF(value int) *ffmpegBuilder {
+	return f.addArgs("-crf", strconv.Itoa(value))
 }
 
 // addArgs adiciona argumentos ao comando FFmpeg.

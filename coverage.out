@@ -1,0 +1,18 @@
+mode: set
+github.com/Marlliton/ffcmd/internal/ffmpeg/ffmpeg.go:23.27,27.2 1 1
+github.com/Marlliton/ffcmd/internal/ffmpeg/ffmpeg.go:30.59,32.2 1 1
+github.com/Marlliton/ffcmd/internal/ffmpeg/ffmpeg.go:35.60,37.2 1 1
+github.com/Marlliton/ffcmd/internal/ffmpeg/ffmpeg.go:40.51,42.2 1 1
+github.com/Marlliton/ffcmd/internal/ffmpeg/ffmpeg.go:45.65,47.2 1 1
+github.com/Marlliton/ffcmd/internal/ffmpeg/ffmpeg.go:50.65,52.2 1 1
+github.com/Marlliton/ffcmd/internal/ffmpeg/ffmpeg.go:55.68,57.2 1 1
+github.com/Marlliton/ffcmd/internal/ffmpeg/ffmpeg.go:60.93,62.2 1 1
+github.com/Marlliton/ffcmd/internal/ffmpeg/ffmpeg.go:65.52,67.2 1 1
+github.com/Marlliton/ffcmd/internal/ffmpeg/ffmpeg.go:70.52,72.2 1 1
+github.com/Marlliton/ffcmd/internal/ffmpeg/ffmpeg.go:79.71,81.2 1 1
+github.com/Marlliton/ffcmd/internal/ffmpeg/ffmpeg.go:85.55,87.2 1 0
+github.com/Marlliton/ffcmd/internal/ffmpeg/ffmpeg.go:90.64,93.2 2 1
+github.com/Marlliton/ffcmd/internal/ffmpeg/ffmpeg.go:96.40,99.29 2 1
+github.com/Marlliton/ffcmd/internal/ffmpeg/ffmpeg.go:99.29,101.3 1 1
+github.com/Marlliton/ffcmd/internal/ffmpeg/ffmpeg.go:103.2,103.39 1 1
+github.com/Marlliton/ffcmd/internal/ffmpeg/utils.go:8.42,15.2 5 1

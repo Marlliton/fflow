@@ -97,6 +97,12 @@ func Test_FFmpegBuilder(t *testing.T) {
 				builder:  New().CodecFor(Video, 0, "libx264"),
 				expected: "ffmpeg -c:v:0 libx264",
 			},
+			{
+				name: "define a qualidade do vídeo CRF",
+				builder: New().CodecFor(Video, 0, "libx264").
+					CRF(22),
+				expected: "ffmpeg -c:v:0 libx264 -crf 22",
+			},
 		}
 
 		exec(t, tests)
