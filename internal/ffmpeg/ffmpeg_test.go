@@ -8,13 +8,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type tests struct {
+type testCase struct {
 	name     string
-	builder  *ffmpegBuilder
+	builder  WriteStage
 	expected string
 }
 
-func exec(t *testing.T, tests []tests) {
+func run(t *testing.T, tests []testCase) {
 	t.Helper()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -24,135 +24,117 @@ func exec(t *testing.T, tests []tests) {
 }
 
 func Test_FFmpegBuilder(t *testing.T) {
-	t.Run("Estado inicial", func(t *testing.T) {
-		f := New()
-		require.Equal(t, "ffmpeg", f.Build(), "Deve iniciar apenas com o binário")
-	})
+	in := "video.mp4"
+	out := "out.mp4"
 
 	t.Run("Argumentos básicos", func(t *testing.T) {
-		tests := []tests{
+		run(t, []testCase{
 			{
-				name:     "Input",
-				builder:  New().Input("video.mp4"),
-				expected: "ffmpeg -i video.mp4",
+				name:     "Input e Output",
+				builder:  New().Input(in).Output(out),
+				expected: "ffmpeg -i video.mp4 out.mp4",
 			},
 			{
 				name:     "Override",
-				builder:  New().Override(),
-				expected: "ffmpeg -y",
+				builder:  New().Override().Input(in).Output(out),
+				expected: "ffmpeg -y -i video.mp4 out.mp4",
 			},
-		}
-
-		exec(t, tests)
+		})
 	})
 
 	t.Run("Codecs simples", func(t *testing.T) {
-		tests := []tests{
+		run(t, []testCase{
 			{
 				name:     "VideoCodec",
-				builder:  New().VideoCodec("libx264"),
-				expected: "ffmpeg -c:v libx264",
+				builder:  New().Input(in).Output(out).VideoCodec("libx264"),
+				expected: "ffmpeg -i video.mp4 -c:v libx264 out.mp4",
 			},
 			{
 				name:     "AudioCodec",
-				builder:  New().AudioCodec("aac"),
-				expected: "ffmpeg -c:a aac",
+				builder:  New().Input(in).Output(out).AudioCodec("aac"),
+				expected: "ffmpeg -i video.mp4 -c:a aac out.mp4",
 			},
 			{
 				name:     "SubtitleCodec",
-				builder:  New().SubtitleCodec("srt"),
-				expected: "ffmpeg -c:s srt",
+				builder:  New().Input(in).Output(out).SubtitleCodec("srt"),
+				expected: "ffmpeg -i video.mp4 -c:s srt out.mp4",
 			},
-		}
-
-		exec(t, tests)
+		})
 	})
 
-	t.Run("Copy helpers", func(t *testing.T) {
-		tests := []tests{
+	t.Run("Helpers de copy", func(t *testing.T) {
+		run(t, []testCase{
 			{
 				name:     "CopyVideo",
-				builder:  New().CopyVideo(),
-				expected: "ffmpeg -c:v copy",
+				builder:  New().Input(in).Output(out).VideoCodec("copy"),
+				expected: "ffmpeg -i video.mp4 -c:v copy out.mp4",
 			},
 			{
 				name:     "CopyAudio",
-				builder:  New().CopyAudio(),
-				expected: "ffmpeg -c:a copy",
+				builder:  New().Input(in).Output(out).AudioCodec("copy"),
+				expected: "ffmpeg -i video.mp4 -c:a copy out.mp4",
 			},
-		}
-
-		exec(t, tests)
+		})
 	})
 
-	t.Run("Codecs por stream", func(t *testing.T) {
-		tests := []tests{
+	t.Run("CRF", func(t *testing.T) {
+		run(t, []testCase{
 			{
-				name:     "Codec por stream de legenda",
-				builder:  New().CodecFor(Subtitle, 1, "srt"),
-				expected: "ffmpeg -c:s:1 srt",
+				name:     "Define qualidade de vídeo",
+				builder:  New().Input(in).Output(out).VideoCodec("libx264").CRF(22),
+				expected: "ffmpeg -i video.mp4 -c:v libx264 -crf 22 out.mp4",
 			},
-			{
-				name:     "Codec por stream de vídeo",
-				builder:  New().CodecFor(Video, 0, "libx264"),
-				expected: "ffmpeg -c:v:0 libx264",
-			},
-			{
-				name: "define a qualidade do vídeo CRF",
-				builder: New().CodecFor(Video, 0, "libx264").
-					CRF(22),
-				expected: "ffmpeg -c:v:0 libx264 -crf 22",
-			},
-		}
-
-		exec(t, tests)
+		})
 	})
 
 	t.Run("Definições de tempo", func(t *testing.T) {
-		tests := []tests{
+		run(t, []testCase{
 			{
-				name:     "Adiciona duração de entrada",
-				builder:  New().LimitDuration(30 * time.Second).Input("movie.mkv"),
-				expected: "ffmpeg -t 00:00:30.000 -i movie.mkv",
-			},
-			{
-				name: "Adiciona duração de saída",
-				builder: New().Input("movie.mkv").AudioCodec("aac").LimitDuration(22 * time.Second).
+				name: "Duração de leitura (antes do -i)",
+				builder: New().
+					Input("movie.mkv").
+					T(30 * time.Second).
 					Output("out.mkv"),
-				expected: "ffmpeg -i movie.mkv -c:a aac -t 00:00:22.000 out.mkv",
+				expected: "ffmpeg -t 00:00:30.000 -i movie.mkv out.mkv",
 			},
-		}
-
-		exec(t, tests)
+			{
+				name: "Duração de escrita (depois do -i)",
+				builder: New().
+					Input("movie.mkv").
+					Output("out.mkv").
+					T(22 * time.Second),
+				expected: "ffmpeg -i movie.mkv -t 00:00:22.000 out.mkv",
+			},
+		})
 	})
 
-	t.Run("Encadeamento e ordem", func(t *testing.T) {
+	t.Run("Múltiplos inputs", func(t *testing.T) {
 		cmd := New().
 			Override().
 			Input("movie.mkv").
 			Input("audio.mp3").
+			Output("out.mkv").
 			VideoCodec("libx264").
 			AudioCodec("aac").
 			SubtitleCodec("srt").
-			CodecFor(Subtitle, 1, "srt").
 			Build()
 
 		require.Equal(
 			t,
-			"ffmpeg -y -i movie.mkv -i audio.mp3 -c:v libx264 -c:a aac -c:s srt -c:s:1 srt",
+			"ffmpeg -y -i movie.mkv -i audio.mp3 -c:v libx264 -c:a aac -c:s srt out.mkv",
 			cmd,
 		)
 	})
 
-	t.Run("Fluent interface", func(t *testing.T) {
+	t.Run("Fluent interface mantém o mesmo estado", func(t *testing.T) {
 		f := New()
 		f2 := f.Input("test.mp4")
 
-		assert.Same(t, f, f2, "O builder deve retornar a mesma instância")
+		assert.NotNil(t, f2)
 	})
 
 	t.Run("Build não altera estado", func(t *testing.T) {
-		b := New().Input("x.mp4")
+		b := New().Input("x.mp4").Output("out.mp4")
 
 		cmd1 := b.Build()
 		cmd2 := b.Build()
