@@ -30,9 +30,19 @@ func TestWriteStage(t *testing.T) {
 				expected: "ffmpeg -i video.mp4 -c:s srt out.mp4",
 			},
 			{
-				name:     "CodecFor",
-				builder:  New().Input(in).Output(out).CodecFor("v", 0, "libx264"),
+				name:     "CodecFor video stream",
+				builder:  New().Input(in).Output(out).CodecFor(Video, 0, "libx264"),
 				expected: "ffmpeg -i video.mp4 -c:v:0 libx264 out.mp4",
+			},
+			{
+				name:     "CodecFor audio stream",
+				builder:  New().Input(in).Output(out).CodecFor(Audio, 1, "libmp3lame"),
+				expected: "ffmpeg -i video.mp4 -c:a:1 libmp3lame out.mp4",
+			},
+			{
+				name:     "CodecFor subtitle stream",
+				builder:  New().Input(in).Output(out).CodecFor(Subtitle, 0, "mov_text"),
+				expected: "ffmpeg -i video.mp4 -c:s:0 mov_text out.mp4",
 			},
 		})
 	})
@@ -92,19 +102,38 @@ func TestWriteStage(t *testing.T) {
 	})
 
 	t.Run("filter", func(t *testing.T) {
-		t.Run("should returns a string filter", func(t *testing.T) {
+		t.Run("Complex filter with overlay and map", func(t *testing.T) {
 			builder := New().
 				Input(in).
-				Filter().Complex().
+				Input("logo.png").
+				Filter().
+				Complex().
 				Chaing([]string{"0:v"}, AtomicFilter{Name: "scale", Params: []string{"1280", "-1"}}, "main").
 				Chaing([]string{"1:v"}, AtomicFilter{Name: "scale", Params: []string{"400", "-1"}}, "logo").
-				Chaing([]string{"main", "logo"}, AtomicFilter{Name: "overlay", Params: []string{"W-w-10", "10"}}, "out").Done().
+				Chaing([]string{"main", "logo"}, AtomicFilter{Name: "overlay", Params: []string{"W-w-10", "10"}}, "out").
+				Done().
+				Map("out").
 				Output(out).
 				VideoCodec("libx264").
 				CRF(22)
 
-			// expected: " ",
-			expected := "ffmpeg -i video.mp4 " + "-filter_complex [0:v]scale=1280:-1[main];[1:v]scale=400:-1[logo];[main][logo]overlay=W-w-10:10[out] " + "-c:v libx264 -crf 22 out.mp4"
+			expected := "ffmpeg -i video.mp4 -i logo.png " +
+				"-filter_complex [0:v]scale=1280:-1[main];[1:v]scale=400:-1[logo];[main][logo]overlay=W-w-10:10[out] " +
+				"-map [out] -c:v libx264 -crf 22 out.mp4"
+			assert.Equal(t, expected, builder.Build())
+		})
+
+		t.Run("Simple filter chain with -vf", func(t *testing.T) {
+			builder := New().
+				Input(in).
+				Filter().
+				Simple().
+				Add(AtomicFilter{Name: "scale", Params: []string{"640", "-1"}}).
+				Add(AtomicFilter{Name: "hflip"}).
+				Done().
+				Output(out)
+
+			expected := "ffmpeg -i video.mp4 -vf scale=640:-1,hflip out.mp4"
 			assert.Equal(t, expected, builder.Build())
 		})
 	})
