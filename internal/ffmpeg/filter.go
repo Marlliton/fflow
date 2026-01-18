@@ -39,9 +39,7 @@ func (c *filterCtx) Complex() ComplexFilter {
 }
 
 func (sf *simpleFilterCtx) Add(filter AtomicFilter) SimpleFilter {
-	p := Pipeline{Nodes: []Filter{filter}}
-
-	sf.b.filters = append(sf.b.filters, p)
+	sf.b.filters = append(sf.b.filters, filter)
 	return sf
 }
 
@@ -51,9 +49,7 @@ func (sf *simpleFilterCtx) Done() WriteStage {
 
 func (cf *complexFilterCtx) Chaing(in []string, filter AtomicFilter, out string) ComplexFilter {
 	chain := Chaing{Inputs: in, Filter: filter, Output: out}
-	p := Pipeline{Nodes: []Filter{chain}}
-
-	cf.b.filters = append(cf.b.filters, p)
+	cf.b.filters = append(cf.b.filters, chain)
 	return cf
 }
 

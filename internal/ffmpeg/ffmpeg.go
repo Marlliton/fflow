@@ -13,7 +13,7 @@ type ffmpegBuilder struct {
 	global  []string
 	read    []string
 	write   []string
-	filters []string
+	filters []Filter
 	output  string
 }
 

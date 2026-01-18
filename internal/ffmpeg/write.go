@@ -131,6 +131,14 @@ func (c *writeCtx) Build() string {
 
 	args = append(args, c.b.global...)
 	args = append(args, c.b.read...)
+	if len(c.b.filters) > 0 {
+		pipeline := Pipeline{Nodes: c.b.filters}
+		if pipeline.NeedsComplex() {
+			args = append(args, "-filter_complex", pipeline.String())
+		} else {
+			args = append(args, "-vf", pipeline.String())
+		}
+	}
 	args = append(args, c.b.write...)
 	args = append(args, c.b.output)
 	return strings.Join(args, " ")

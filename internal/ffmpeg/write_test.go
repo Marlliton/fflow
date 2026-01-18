@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -87,6 +88,24 @@ func TestWriteStage(t *testing.T) {
 					To(52 * time.Second),
 				expected: "ffmpeg -i movie.mkv -to 00:00:52.000 out.mkv",
 			},
+		})
+	})
+
+	t.Run("filter", func(t *testing.T) {
+		t.Run("should returns a string filter", func(t *testing.T) {
+			builder := New().
+				Input(in).
+				Filter().Complex().
+				Chaing([]string{"0:v"}, AtomicFilter{Name: "scale", Params: []string{"1280", "-1"}}, "main").
+				Chaing([]string{"1:v"}, AtomicFilter{Name: "scale", Params: []string{"400", "-1"}}, "logo").
+				Chaing([]string{"main", "logo"}, AtomicFilter{Name: "overlay", Params: []string{"W-w-10", "10"}}, "out").Done().
+				Output(out).
+				VideoCodec("libx264").
+				CRF(22)
+
+			// expected: " ",
+			expected := "ffmpeg -i video.mp4 " + "-filter_complex [0:v]scale=1280:-1[main];[1:v]scale=400:-1[logo];[main][logo]overlay=W-w-10:10[out] " + "-c:v libx264 -crf 22 out.mp4"
+			assert.Equal(t, expected, builder.Build())
 		})
 	})
 
