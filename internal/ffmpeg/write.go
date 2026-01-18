@@ -172,7 +172,7 @@ func (c *writeCtx) Build() string {
 		if pipeline.NeedsComplex() {
 			args = append(args, "-filter_complex", pipeline.String())
 		} else {
-			args = append(args, "-vf", pipeline.String())
+			args = append(args, c.b.simpleFilterFlag, pipeline.String())
 		}
 	}
 	args = append(args, c.b.write...)
