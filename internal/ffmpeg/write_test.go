@@ -101,6 +101,21 @@ func TestWriteStage(t *testing.T) {
 		})
 	})
 
+	t.Run("Outros", func(t *testing.T) {
+		run(t, []testCase{
+			{
+				name:     "Preset",
+				builder:  New().Input(in).Output(out).VideoCodec("libx264").Preset("slow"),
+				expected: "ffmpeg -i video.mp4 -c:v libx264 -preset slow out.mp4",
+			},
+			{
+				name:     "Argumento bruto (depois do -i)",
+				builder:  New().Input(in).Output(out).Raw("-f"),
+				expected: "ffmpeg -i video.mp4 -f out.mp4",
+			},
+		})
+	})
+
 	t.Run("filter", func(t *testing.T) {
 		t.Run("Complex filter with overlay and map", func(t *testing.T) {
 			builder := New().
@@ -127,7 +142,7 @@ func TestWriteStage(t *testing.T) {
 			builder := New().
 				Input(in).
 				Filter().
-				Simple().
+				Simple(FilterVideo).
 				Add(AtomicFilter{Name: "scale", Params: []string{"640", "-1"}}).
 				Add(AtomicFilter{Name: "hflip"}).
 				Done().

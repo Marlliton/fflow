@@ -5,12 +5,29 @@ import (
 	"strings"
 )
 
+// SimpleFilterType representa filtros simples aplicados a um único stream. FilterVideo para -vf ou FilterAudio para -af.
+//
+// SimpleFilterType represents simple filters applied to a single stream. FilterVideo to -vf or FilterAudio to -af.
+type SimpleFilterType string
+
+const (
+	// FilterVideo representa filtros simples de vídeo (-vf).
+	//
+	// FilterVideo represents simple video filters (-vf).
+	FilterVideo SimpleFilterType = "-vf"
+
+	// FilterAudio representa filtros simples de áudio (-af).
+	//
+	// FilterAudio represents simple audio filters (-af).
+	FilterAudio SimpleFilterType = "-af"
+)
+
 type Filter interface {
 	String() string
 	NeedsComplex() bool
 }
 type FilterStage interface {
-	Simple() SimpleFilter
+	Simple(t SimpleFilterType) SimpleFilter
 	Complex() ComplexFilter
 }
 
@@ -30,7 +47,8 @@ type (
 	complexFilterCtx struct{ b *ffmpegBuilder }
 )
 
-func (c *filterCtx) Simple() SimpleFilter {
+func (c *filterCtx) Simple(t SimpleFilterType) SimpleFilter {
+	c.b.simpleFilterFlag = string(t)
 	return &simpleFilterCtx{c.b}
 }
 

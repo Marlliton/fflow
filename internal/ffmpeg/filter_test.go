@@ -157,7 +157,7 @@ func TestFilterStages(t *testing.T) {
 		fCtx := filterCtx{b}
 
 		t.Run("Simple returns non-nil SimpleFilter", func(t *testing.T) {
-			simpleStage := fCtx.Simple()
+			simpleStage := fCtx.Simple(FilterVideo)
 			assert.NotNil(t, simpleStage)
 			_, ok := simpleStage.(*simpleFilterCtx)
 			assert.True(t, ok, "Simple() should return a *simpleFilterCtx")

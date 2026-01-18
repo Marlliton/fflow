@@ -10,11 +10,12 @@ const (
 )
 
 type ffmpegBuilder struct {
-	global  []string
-	read    []string
-	write   []string
-	filters []Filter
-	output  string
+	global           []string
+	read             []string
+	write            []string
+	filters          []Filter
+	simpleFilterFlag string
+	output           string
 }
 
 // New inicia um novo construtor de comando FFmpeg, retornando uma GlobalStage.

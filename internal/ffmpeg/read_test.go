@@ -34,6 +34,14 @@ func TestReadStage(t *testing.T) {
 					Output("out.mkv"),
 				expected: "ffmpeg -to 00:00:52.000 -i movie.mkv out.mkv",
 			},
+			{
+				name: "Argumento bruto (antes do -i)",
+				builder: New().
+					Raw("-re").
+					Input("movie.mkv").
+					Output("out.mkv"),
+				expected: "ffmpeg -re -i movie.mkv out.mkv",
+			},
 		})
 	})
 
@@ -53,5 +61,15 @@ func TestReadStage(t *testing.T) {
 			"ffmpeg -y -i movie.mkv -i audio.mp3 -c:v libx264 -c:a aac -c:s srt out.mkv",
 			cmd,
 		)
+
+		// cmd := New().
+		// 	Input("movie.mkv").
+		// 	Ss(22 * time.Second).
+		// 	To(60 * time.Second).
+		// 	Input("movie2.mkv").
+		// 	Ss(120*time.Second).
+		// 	To(630*time.Second).
+		// 	Filter().
+		// 	Simple().Add(AtomicFilter{Name: "scale", Params: []string{"v:"}})
 	})
 }

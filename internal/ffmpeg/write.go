@@ -58,10 +58,26 @@ type WriteStage interface {
 	// CRF sets the constant quality factor for video encoders.
 	CRF(value int) WriteStage
 
-	// Map mapeia a stream de entrada, com a  stream de saída. Ex: Map(out)
+	// Map mapeia streams de entrada para streams de saída (-map).
+	// Exemplo: Map("[out]").
 	//
-	// Map connecting input file streams with output file streams. eg: Map(out)
+	// Map maps input streams to output streams (-map).
+	// Example: Map("[out]").
 	Map(selector string) WriteStage
+
+	// Raw adiciona um argumento bruto ao comando FFmpeg.
+	// Útil para opções ainda não abstraídas pelo builder.
+	//
+	// Raw adds a raw argument to the FFmpeg command.
+	// Useful for options not yet abstracted by the builder.
+	Raw(value string) WriteStage
+
+	// Preset adiciona a flag -preset ao encoder de vídeo na saída.
+	// Controla o trade-off entre velocidade de codificação e eficiência de compressão.
+	//
+	// Preset adds the -preset flag to the video encoder at the output stage.
+	// It controls the trade-off between encoding speed and compression efficiency.
+	Preset(value string) WriteStage
 
 	// Output define o arquivo de saída.
 	//
@@ -126,8 +142,18 @@ func (c *writeCtx) CRF(value int) WriteStage {
 	return c
 }
 
+func (c *writeCtx) Preset(value string) WriteStage {
+	c.b.write = append(c.b.write, "-preset", value)
+	return c
+}
+
 func (c *writeCtx) Map(selector string) WriteStage {
 	c.b.write = append(c.b.write, "-map", fmt.Sprintf("[%s]", selector))
+	return c
+}
+
+func (c *writeCtx) Raw(value string) WriteStage {
+	c.b.write = append(c.b.write, value)
 	return c
 }
 
