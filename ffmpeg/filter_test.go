@@ -91,7 +91,7 @@ func TestFilterElements(t *testing.T) {
 
 		for _, tc := range tests {
 			t.Run(tc.name, func(t *testing.T) {
-				c := Chaing{Inputs: tc.inputs, Filter: tc.filter, Output: tc.output}
+				c := Chaing{Inputs: tc.inputs, Filter: tc.filter, Output: []string{tc.output}}
 				assert.Equal(t, tc.expectedStr, c.String())
 				assert.True(t, c.NeedsComplex())
 			})
@@ -118,7 +118,7 @@ func TestFilterElements(t *testing.T) {
 				name: "Pipeline including a complex chain",
 				nodes: []filter{
 					AtomicFilter{Name: "format", Params: []string{"yuv420p"}},
-					Chaing{Inputs: []string{"0:v"}, Filter: AtomicFilter{Name: "fade", Params: []string{"in", "0", "30"}}, Output: "faded_video"},
+					Chaing{Inputs: []string{"0:v"}, Filter: AtomicFilter{Name: "fade", Params: []string{"in", "0", "30"}}, Output: []string{"faded_video"}},
 					AtomicFilter{Name: "setsar", Params: []string{"1"}},
 				},
 				expectedStr:  "format=yuv420p;[0:v]fade=in:0:30[faded_video];setsar=1",
@@ -127,8 +127,8 @@ func TestFilterElements(t *testing.T) {
 			{
 				name: "Pipeline of only complex chains",
 				nodes: []filter{
-					Chaing{Inputs: []string{"0:v"}, Filter: AtomicFilter{Name: scale, Params: []string{"640", "-1"}}, Output: "scaled"},
-					Chaing{Inputs: []string{"scaled", "1:v"}, Filter: AtomicFilter{Name: "overlay", Params: []string{"W-w-10:10"}}, Output: "final"},
+					Chaing{Inputs: []string{"0:v"}, Filter: AtomicFilter{Name: scale, Params: []string{"640", "-1"}}, Output: []string{"scaled"}},
+					Chaing{Inputs: []string{"scaled", "1:v"}, Filter: AtomicFilter{Name: "overlay", Params: []string{"W-w-10:10"}}, Output: []string{"final"}},
 				},
 				expectedStr:  "[0:v]scale=640:-1[scaled];[scaled][1:v]overlay=W-w-10:10[final]",
 				needsComplex: true, // INFO: All nodes need complex
@@ -204,12 +204,12 @@ func TestFilterStages(t *testing.T) {
 			chain1 := Chaing{
 				Inputs: []string{"0:v"},
 				Filter: AtomicFilter{Name: "scale", Params: []string{"640", "-1"}},
-				Output: "out",
+				Output: []string{"out"},
 			}
 			chain2 := Chaing{
 				Inputs: []string{"1:a"},
 				Filter: AtomicFilter{Name: "aformat", Params: []string{"fltp"}},
-				Output: "",
+				Output: []string{""},
 			}
 
 			cCtx.Chaing(chain1.Inputs, chain1.Filter, chain1.Output)

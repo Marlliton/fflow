@@ -37,7 +37,7 @@ type simpleFilter interface {
 }
 
 type complexFilter interface {
-	Chaing(in []string, filter AtomicFilter, out string) complexFilter
+	Chaing(in []string, filter AtomicFilter, out []string) complexFilter
 	Done() WriteStage
 }
 
@@ -65,7 +65,7 @@ func (sf *simpleFilterCtx) Done() WriteStage {
 	return &writeCtx{sf.b}
 }
 
-func (cf *complexFilterCtx) Chaing(in []string, filter AtomicFilter, out string) complexFilter {
+func (cf *complexFilterCtx) Chaing(in []string, filter AtomicFilter, out []string) complexFilter {
 	chain := Chaing{Inputs: in, Filter: filter, Output: out}
 	cf.b.filters = append(cf.b.filters, chain)
 	return cf
@@ -94,7 +94,7 @@ func (f AtomicFilter) NeedsComplex() bool {
 type Chaing struct {
 	Inputs []string
 	Filter AtomicFilter
-	Output string
+	Output []string
 }
 
 func (c Chaing) String() string {
@@ -108,9 +108,9 @@ func (c Chaing) String() string {
 
 	sb.WriteString(c.Filter.String())
 
-	if c.Output != "" {
+	for _, out := range c.Output {
 		sb.WriteString("[")
-		sb.WriteString(c.Output)
+		sb.WriteString(out)
 		sb.WriteString("]")
 	}
 
