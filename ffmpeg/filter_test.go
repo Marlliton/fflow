@@ -49,49 +49,42 @@ func TestFilterElements(t *testing.T) {
 			name        string
 			inputs      []string
 			filter      AtomicFilter
-			output      string
+			output      []string
 			expectedStr string
 		}{
 			{
-				name:        "Single input, scale filter, output label",
+				name:        "Single input, scale filter, single output label",
 				inputs:      []string{"0:v"},
 				filter:      AtomicFilter{Name: scale, Params: []string{"1280", "-1"}},
-				output:      "out",
+				output:      []string{"out"},
 				expectedStr: "[0:v]scale=1280:-1[out]",
 			},
 			{
-				name:        "Single input, hflip filter, output label",
-				inputs:      []string{"0:v"},
-				filter:      AtomicFilter{Name: "hflip", Params: []string{}},
-				output:      "out",
-				expectedStr: "[0:v]hflip[out]",
-			},
-			{
-				name:        "Multiple inputs, overlay filter, output label",
+				name:        "Multiple inputs, overlay filter, single output label",
 				inputs:      []string{"main", "logo"},
 				filter:      AtomicFilter{Name: "overlay", Params: []string{"W-w-10:10"}},
-				output:      "final_video",
+				output:      []string{"final_video"},
 				expectedStr: "[main][logo]overlay=W-w-10:10[final_video]",
 			},
 			{
 				name:        "No output label",
 				inputs:      []string{"0:v"},
 				filter:      AtomicFilter{Name: scale, Params: []string{"640", "-1"}},
-				output:      "",
+				output:      []string{},
 				expectedStr: "[0:v]scale=640:-1",
 			},
 			{
-				name:        "No input label, simple filter, output label (less common)",
-				inputs:      []string{},
-				filter:      AtomicFilter{Name: "null", Params: []string{}},
-				output:      "null_out",
-				expectedStr: "null[null_out]",
+				name:        "Single input, split filter, multiple output labels",
+				inputs:      []string{"0:v"},
+				filter:      AtomicFilter{Name: "split", Params: []string{"2"}},
+				output:      []string{"main", "blur"},
+				expectedStr: "[0:v]split=2[main][blur]",
 			},
 		}
 
 		for _, tc := range tests {
 			t.Run(tc.name, func(t *testing.T) {
-				c := Chaing{Inputs: tc.inputs, Filter: tc.filter, Output: []string{tc.output}}
+				c := Chaing{Inputs: tc.inputs, Filter: tc.filter, Output: tc.output}
 				assert.Equal(t, tc.expectedStr, c.String())
 				assert.True(t, c.NeedsComplex())
 			})
@@ -209,7 +202,7 @@ func TestFilterStages(t *testing.T) {
 			chain2 := Chaing{
 				Inputs: []string{"1:a"},
 				Filter: AtomicFilter{Name: "aformat", Params: []string{"fltp"}},
-				Output: []string{""},
+				Output: []string{},
 			}
 
 			cCtx.Chaing(chain1.Inputs, chain1.Filter, chain1.Output)

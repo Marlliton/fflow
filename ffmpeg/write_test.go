@@ -133,7 +133,7 @@ func TestWriteStage(t *testing.T) {
 				CRF(22)
 
 			expected := "ffmpeg -i video.mp4 -i logo.png " +
-				"-filter_complex [0:v]scale=1280:-1[main];[1:v]scale=400:-1[logo];[main][logo]overlay=W-w-10:10[out] " +
+				"-filter_complex \"[0:v]scale=1280:-1[main];[1:v]scale=400:-1[logo];[main][logo]overlay=W-w-10:10[out]\" " +
 				"-map [out] -c:v libx264 -crf 22 out.mp4"
 			assert.Equal(t, expected, builder.Build())
 		})
@@ -148,7 +148,7 @@ func TestWriteStage(t *testing.T) {
 				Done().
 				Output(out)
 
-			expected := "ffmpeg -i video.mp4 -vf scale=640:-1,hflip out.mp4"
+			expected := "ffmpeg -i video.mp4 -vf \"scale=640:-1,hflip\" out.mp4"
 			assert.Equal(t, expected, builder.Build())
 		})
 
@@ -162,7 +162,7 @@ func TestWriteStage(t *testing.T) {
 				Done().
 				Output(out)
 
-			expected := "ffmpeg -i video.mp4 -af volume=0.5,atempo=2.0 out.mp4"
+			expected := "ffmpeg -i video.mp4 -af \"volume=0.5,atempo=2.0\" out.mp4"
 			assert.Equal(t, expected, builder.Build())
 		})
 
@@ -204,7 +204,7 @@ func TestWriteStage(t *testing.T) {
 				Output("output.mp4")
 
 			expected := "ffmpeg -y -ss 00:00:10.000 -i input.mp4 -i logo.png " +
-				"-filter_complex [0:v]crop=1280:720:0:0[cropped];[1:v]scale=200:-1[logo_scaled];[cropped][logo_scaled]overlay=W-w-10:10[video_out];[0:a]atempo=1.1[audio_out] " +
+				"-filter_complex \"[0:v]crop=1280:720:0:0[cropped];[1:v]scale=200:-1[logo_scaled];[cropped][logo_scaled]overlay=W-w-10:10[video_out];[0:a]atempo=1.1[audio_out]\" " +
 				"-map [video_out] -map [audio_out] -c:v libx264 -c:a aac -preset fast -crf 23 output.mp4"
 			assert.Equal(t, expected, builder.Build())
 		})
