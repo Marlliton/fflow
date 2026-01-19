@@ -27,6 +27,6 @@ type ffmpegBuilder struct {
 // before specifying inputs.
 func New() *globalCtx {
 	return &globalCtx{
-		b: &ffmpegBuilder{global: []string{"ffmpeg"}},
+		b: &ffmpegBuilder{global: []string{}},
 	}
 }
