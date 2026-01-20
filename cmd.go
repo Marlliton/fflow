@@ -124,8 +124,7 @@ func (c commandCtx) monitorProgress(stderr io.ReadCloser, pch chan Progress) {
 			prog.OutTime = d
 
 		case "speed":
-			s := strings.TrimSuffix(value, "x")
-			fmt.Sscanf(s, "%s", &prog.Speed)
+			fmt.Sscanf(value, "%s", &prog.Speed)
 
 		case "progress":
 			pch <- prog
