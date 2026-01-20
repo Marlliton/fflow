@@ -59,18 +59,20 @@ type writeStage interface {
 	CRF(value int) writeStage
 
 	// Map mapeia streams de entrada para streams de saída (-map).
-	// Exemplo: Map("[out]").
+	// Exemplo: Map("out").
 	//
 	// Map maps input streams to output streams (-map).
-	// Example: Map("[out]").
+	// Example: Map("out").
 	Map(selector string) writeStage
 
-	// Raw adiciona um argumento bruto ao comando FFmpeg.
-	// Útil para opções ainda não abstraídas pelo builder.
+	// Raw adiciona um ou mais argumentos brutos ao comando FFmpeg.
+	// Útil para opções ainda não abstraídas e para passar flags com seus valores.
+	// Exemplo: `.Raw("-b:a", "192k")`
 	//
-	// Raw adds a raw argument to the FFmpeg command.
-	// Useful for options not yet abstracted by the builder.
-	Raw(value string) writeStage
+	// Raw adds one or more raw arguments to the FFmpeg command.
+	// Useful for unabstracted options and for passing flags with their values.
+	// Example: `.Raw("-b:a", "192k")`
+	Raw(values ...string) writeStage
 
 	// Preset adiciona a flag -preset ao encoder de vídeo na saída.
 	// Controla o trade-off entre velocidade de codificação e eficiência de compressão.
@@ -173,8 +175,8 @@ func (c *writeCtx) Map(selector string) writeStage {
 	return c
 }
 
-func (c *writeCtx) Raw(value string) writeStage {
-	c.b.write = append(c.b.write, value)
+func (c *writeCtx) Raw(values ...string) writeStage {
+	c.b.write = append(c.b.write, values...)
 	return c
 }
 
