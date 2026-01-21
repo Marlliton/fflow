@@ -84,7 +84,7 @@ func TestFilterElements(t *testing.T) {
 
 		for _, tc := range tests {
 			t.Run(tc.name, func(t *testing.T) {
-				c := Chaing{Inputs: tc.inputs, Filter: tc.filter, Output: tc.output}
+				c := Chain{Inputs: tc.inputs, Filter: tc.filter, Output: tc.output}
 				assert.Equal(t, tc.expectedStr, c.String())
 				assert.True(t, c.NeedsComplex())
 			})
@@ -111,7 +111,7 @@ func TestFilterElements(t *testing.T) {
 				name: "Pipeline including a complex chain",
 				nodes: []filter{
 					AtomicFilter{Name: "format", Params: []string{"yuv420p"}},
-					Chaing{Inputs: []string{"0:v"}, Filter: AtomicFilter{Name: "fade", Params: []string{"in", "0", "30"}}, Output: []string{"faded_video"}},
+					Chain{Inputs: []string{"0:v"}, Filter: AtomicFilter{Name: "fade", Params: []string{"in", "0", "30"}}, Output: []string{"faded_video"}},
 					AtomicFilter{Name: "setsar", Params: []string{"1"}},
 				},
 				expectedStr:  "format=yuv420p;[0:v]fade=in:0:30[faded_video];setsar=1",
@@ -120,8 +120,8 @@ func TestFilterElements(t *testing.T) {
 			{
 				name: "Pipeline of only complex chains",
 				nodes: []filter{
-					Chaing{Inputs: []string{"0:v"}, Filter: AtomicFilter{Name: scale, Params: []string{"640", "-1"}}, Output: []string{"scaled"}},
-					Chaing{Inputs: []string{"scaled", "1:v"}, Filter: AtomicFilter{Name: "overlay", Params: []string{"W-w-10:10"}}, Output: []string{"final"}},
+					Chain{Inputs: []string{"0:v"}, Filter: AtomicFilter{Name: scale, Params: []string{"640", "-1"}}, Output: []string{"scaled"}},
+					Chain{Inputs: []string{"scaled", "1:v"}, Filter: AtomicFilter{Name: "overlay", Params: []string{"W-w-10:10"}}, Output: []string{"final"}},
 				},
 				expectedStr:  "[0:v]scale=640:-1[scaled];[scaled][1:v]overlay=W-w-10:10[final]",
 				needsComplex: true, // INFO: All nodes need complex
@@ -194,19 +194,19 @@ func TestFilterStages(t *testing.T) {
 		cCtx := fCtx.Complex().(*complexFilterCtx) // Get the instance of complexFilterCtx
 
 		t.Run("Chaing appends Chaing object to builder.filters", func(t *testing.T) { // Changed description
-			chain1 := Chaing{
+			chain1 := Chain{
 				Inputs: []string{"0:v"},
 				Filter: AtomicFilter{Name: "scale", Params: []string{"640", "-1"}},
 				Output: []string{"out"},
 			}
-			chain2 := Chaing{
+			chain2 := Chain{
 				Inputs: []string{"1:a"},
 				Filter: AtomicFilter{Name: "aformat", Params: []string{"fltp"}},
 				Output: []string{},
 			}
 
-			cCtx.Chaing(chain1.Inputs, chain1.Filter, chain1.Output)
-			cCtx.Chaing(chain2.Inputs, chain2.Filter, chain2.Output)
+			cCtx.Chain(chain1.Inputs, chain1.Filter, chain1.Output)
+			cCtx.Chain(chain2.Inputs, chain2.Filter, chain2.Output)
 
 			expectedFilters := []filter{chain1, chain2} // Now []Filter
 			assert.Equal(t, expectedFilters, b.filters)

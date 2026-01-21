@@ -23,21 +23,59 @@ const (
 )
 
 type filter interface {
+	// String retorna a representação textual do filtro no formato aceito pelo ffmpeg.
+	//
+	// String returns the textual representation of the filter in a format accepted by ffmpeg.
 	String() string
+
+	// NeedsComplex indica se o filtro requer o uso de -filter_complex.
+	//
+	// NeedsComplex indicates whether the filter requires -filter_complex.
 	NeedsComplex() bool
 }
 type filterStage interface {
+	// Simple inicia a construção de filtros simples (-vf ou -af),
+	// aplicados diretamente a um único stream.
+	//
+	// Simple starts building simple filters (-vf or -af),
+	// applied directly to a single stream.
 	Simple(t SimpleFilterType) simpleFilter
+
+	// Complex inicia a construção de filtros complexos (-filter_complex),
+	// permitindo múltiplos inputs e outputs.
+	//
+	// Complex starts building complex filters (-filter_complex),
+	// allowing multiple inputs and outputs.
 	Complex() complexFilter
 }
 
 type simpleFilter interface {
+	// Add adiciona um filtro atômico à cadeia de filtros simples.
+	//
+	// Add appends an atomic filter to the simple filter chain.
 	Add(filter AtomicFilter) simpleFilter
+
+	// Done finaliza a construção dos filtros simples
+	// e avança para o próximo estágio do pipeline.
+	//
+	// Done finalizes the simple filter construction
+	// and advances to the next pipeline stage.
 	Done() writeStage
 }
 
 type complexFilter interface {
-	Chaing(in []string, filter AtomicFilter, out []string) complexFilter
+	// Chain adiciona um filtro complexo à cadeia,
+	// conectando explicitamente inputs e outputs.
+	//
+	// Chain adds a complex filter to the chain,
+	// explicitly connecting inputs and outputs.
+	Chain(in []string, filter AtomicFilter, out []string) complexFilter
+
+	// Done finaliza a construção dos filtros complexos
+	// e avança para o próximo estágio do pipeline.
+	//
+	// Done finalizes the complex filter construction
+	// and advances to the next pipeline stage.
 	Done() writeStage
 }
 
@@ -65,8 +103,8 @@ func (sf *simpleFilterCtx) Done() writeStage {
 	return &writeCtx{sf.b}
 }
 
-func (cf *complexFilterCtx) Chaing(in []string, filter AtomicFilter, out []string) complexFilter {
-	chain := Chaing{Inputs: in, Filter: filter, Output: out}
+func (cf *complexFilterCtx) Chain(in []string, filter AtomicFilter, out []string) complexFilter {
+	chain := Chain{Inputs: in, Filter: filter, Output: out}
 	cf.b.filters = append(cf.b.filters, chain)
 	return cf
 }
@@ -91,13 +129,13 @@ func (f AtomicFilter) NeedsComplex() bool {
 	return false
 }
 
-type Chaing struct {
+type Chain struct {
 	Inputs []string
 	Filter AtomicFilter
 	Output []string
 }
 
-func (c Chaing) String() string {
+func (c Chain) String() string {
 	var sb strings.Builder
 
 	for _, in := range c.Inputs {
@@ -117,7 +155,7 @@ func (c Chaing) String() string {
 	return sb.String()
 }
 
-func (c Chaing) NeedsComplex() bool {
+func (c Chain) NeedsComplex() bool {
 	return true
 }
 

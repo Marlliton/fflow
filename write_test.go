@@ -123,9 +123,9 @@ func TestWriteStage(t *testing.T) {
 				Input("logo.png").
 				Filter().
 				Complex().
-				Chaing([]string{"0:v"}, AtomicFilter{Name: "scale", Params: []string{"1280", "-1"}}, []string{"main"}).
-				Chaing([]string{"1:v"}, AtomicFilter{Name: "scale", Params: []string{"400", "-1"}}, []string{"logo"}).
-				Chaing([]string{"main", "logo"}, AtomicFilter{Name: "overlay", Params: []string{"W-w-10", "10"}}, []string{"out"}).
+				Chain([]string{"0:v"}, AtomicFilter{Name: "scale", Params: []string{"1280", "-1"}}, []string{"main"}).
+				Chain([]string{"1:v"}, AtomicFilter{Name: "scale", Params: []string{"400", "-1"}}, []string{"logo"}).
+				Chain([]string{"main", "logo"}, AtomicFilter{Name: "overlay", Params: []string{"W-w-10", "10"}}, []string{"out"}).
 				Done().
 				Map("out").
 				Output(out).
@@ -174,22 +174,22 @@ func TestWriteStage(t *testing.T) {
 				Input("logo.png").
 				Filter().
 				Complex().
-				Chaing(
+				Chain(
 					[]string{"0:v"},
 					AtomicFilter{Name: "crop", Params: []string{"1280", "720", "0", "0"}},
 					[]string{"cropped"},
 				).
-				Chaing(
+				Chain(
 					[]string{"1:v"},
 					AtomicFilter{Name: "scale", Params: []string{"200", "-1"}},
 					[]string{"logo_scaled"},
 				).
-				Chaing(
+				Chain(
 					[]string{"cropped", "logo_scaled"},
 					AtomicFilter{Name: "overlay", Params: []string{"W-w-10", "10"}},
 					[]string{"video_out"},
 				).
-				Chaing(
+				Chain(
 					[]string{"0:a"},
 					AtomicFilter{Name: "atempo", Params: []string{"1.1"}},
 					[]string{"audio_out"},
