@@ -48,35 +48,35 @@ func TestFilterElements(t *testing.T) {
 		tests := []struct {
 			name        string
 			inputs      []string
-			filter      AtomicFilter
+			filter      []AtomicFilter
 			output      []string
 			expectedStr string
 		}{
 			{
 				name:        "Single input, scale filter, single output label",
 				inputs:      []string{"0:v"},
-				filter:      AtomicFilter{Name: scale, Params: []string{"1280", "-1"}},
+				filter:      []AtomicFilter{{Name: scale, Params: []string{"1280", "-1"}}},
 				output:      []string{"out"},
 				expectedStr: "[0:v]scale=1280:-1[out]",
 			},
 			{
 				name:        "Multiple inputs, overlay filter, single output label",
 				inputs:      []string{"main", "logo"},
-				filter:      AtomicFilter{Name: "overlay", Params: []string{"W-w-10:10"}},
+				filter:      []AtomicFilter{{Name: "overlay", Params: []string{"W-w-10:10"}}},
 				output:      []string{"final_video"},
 				expectedStr: "[main][logo]overlay=W-w-10:10[final_video]",
 			},
 			{
 				name:        "No output label",
 				inputs:      []string{"0:v"},
-				filter:      AtomicFilter{Name: scale, Params: []string{"640", "-1"}},
+				filter:      []AtomicFilter{{Name: scale, Params: []string{"640", "-1"}}},
 				output:      []string{},
 				expectedStr: "[0:v]scale=640:-1",
 			},
 			{
 				name:        "Single input, split filter, multiple output labels",
 				inputs:      []string{"0:v"},
-				filter:      AtomicFilter{Name: "split", Params: []string{"2"}},
+				filter:      []AtomicFilter{{Name: "split", Params: []string{"2"}}},
 				output:      []string{"main", "blur"},
 				expectedStr: "[0:v]split=2[main][blur]",
 			},
@@ -111,7 +111,7 @@ func TestFilterElements(t *testing.T) {
 				name: "Pipeline including a complex chain",
 				nodes: []filter{
 					AtomicFilter{Name: "format", Params: []string{"yuv420p"}},
-					Chain{Inputs: []string{"0:v"}, Filter: AtomicFilter{Name: "fade", Params: []string{"in", "0", "30"}}, Output: []string{"faded_video"}},
+					Chain{Inputs: []string{"0:v"}, Filter: []AtomicFilter{{Name: "fade", Params: []string{"in", "0", "30"}}}, Output: []string{"faded_video"}},
 					AtomicFilter{Name: "setsar", Params: []string{"1"}},
 				},
 				expectedStr:  "format=yuv420p;[0:v]fade=in:0:30[faded_video];setsar=1",
@@ -120,8 +120,8 @@ func TestFilterElements(t *testing.T) {
 			{
 				name: "Pipeline of only complex chains",
 				nodes: []filter{
-					Chain{Inputs: []string{"0:v"}, Filter: AtomicFilter{Name: scale, Params: []string{"640", "-1"}}, Output: []string{"scaled"}},
-					Chain{Inputs: []string{"scaled", "1:v"}, Filter: AtomicFilter{Name: "overlay", Params: []string{"W-w-10:10"}}, Output: []string{"final"}},
+					Chain{Inputs: []string{"0:v"}, Filter: []AtomicFilter{{Name: scale, Params: []string{"640", "-1"}}}, Output: []string{"scaled"}},
+					Chain{Inputs: []string{"scaled", "1:v"}, Filter: []AtomicFilter{{Name: "overlay", Params: []string{"W-w-10:10"}}}, Output: []string{"final"}},
 				},
 				expectedStr:  "[0:v]scale=640:-1[scaled];[scaled][1:v]overlay=W-w-10:10[final]",
 				needsComplex: true, // INFO: All nodes need complex
@@ -196,15 +196,14 @@ func TestFilterStages(t *testing.T) {
 		t.Run("Chaing appends Chaing object to builder.filters", func(t *testing.T) { // Changed description
 			chain1 := Chain{
 				Inputs: []string{"0:v"},
-				Filter: AtomicFilter{Name: "scale", Params: []string{"640", "-1"}},
+				Filter: []AtomicFilter{{Name: "scale", Params: []string{"640", "-1"}}},
 				Output: []string{"out"},
 			}
 			chain2 := Chain{
 				Inputs: []string{"1:a"},
-				Filter: AtomicFilter{Name: "aformat", Params: []string{"fltp"}},
+				Filter: []AtomicFilter{{Name: "aformat", Params: []string{"fltp"}}},
 				Output: []string{},
 			}
-
 			cCtx.Chain(chain1.Inputs, chain1.Filter, chain1.Output)
 			cCtx.Chain(chain2.Inputs, chain2.Filter, chain2.Output)
 

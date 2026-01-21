@@ -30,7 +30,7 @@ type commandStage interface {
 	// RunWithProgress executa o comando e emite eventos de progresso.
 	//
 	// RunWithProgress executes the command and emits progress events.
-	RunWithProgress(ctx context.Context) (<-chan Progress, error)
+	RunWithProgress(ctx context.Context) (<-chan Progress, <-chan error)
 }
 
 type Progress struct {
@@ -58,42 +58,55 @@ func (c *commandCtx) Run(ctx context.Context) error {
 	return cmd.Run()
 }
 
-func (c *commandCtx) RunWithProgress(ctx context.Context) (<-chan Progress, error) {
+func (c *commandCtx) RunWithProgress(ctx context.Context) (<-chan Progress, <-chan error) {
 	args := c.tmpWritter().Args()
-	args = append(args, "-progress", "pipe:2", "-nostats", "-loglevel", "error")
+	args = append(args, "-progress", "pipe:2", "-nostats")
 
 	cmd := exec.CommandContext(ctx, "ffmpeg", args...)
 	stderr, err := cmd.StderrPipe()
 	if err != nil {
-		return nil, err
+		return nil, errChan(err)
 	}
 
 	err = cmd.Start()
 	if err != nil {
-		return nil, err
+		return nil, errChan(err)
 	}
 
 	pch := make(chan Progress)
+	ech := make(chan error, 1)
 
 	go func() {
 		defer close(pch)
+		defer close(ech)
 
-		c.monitorProgress(stderr, pch)
+		if err := c.monitorProgress(stderr, pch); err != nil {
+			ech <- err
+			_ = cmd.Process.Kill()
+			return
+		}
 
 		if err := cmd.Wait(); err != nil {
-			fmt.Printf("FFmpeg terminou com erro: %v\n", err)
+			ech <- fmt.Errorf("ffmpeg failed: %w", err)
 		}
+
+		ech <- nil
 	}()
 
-	return pch, nil
+	return pch, ech
 }
 
-func (c commandCtx) monitorProgress(stderr io.ReadCloser, pch chan Progress) {
+func (c commandCtx) monitorProgress(stderr io.ReadCloser, pch chan Progress) error {
 	scanner := bufio.NewScanner(stderr)
 
 	prog := Progress{}
 	for scanner.Scan() {
 		line := scanner.Text()
+
+		if strings.HasPrefix(strings.ToLower(line), "error") ||
+			strings.Contains(strings.ToLower(line), "invalid") {
+			return fmt.Errorf("ffmpeg error: %s", line)
+		}
 
 		parts := strings.SplitN(line, "=", 2)
 		if len(parts) != 2 {
@@ -130,10 +143,19 @@ func (c commandCtx) monitorProgress(stderr io.ReadCloser, pch chan Progress) {
 			pch <- prog
 
 			if value == "end" {
-				return
+				return nil
 			}
 		}
 	}
+
+	return scanner.Err()
+}
+
+func errChan(err error) <-chan error {
+	ch := make(chan error, 1)
+	ch <- err
+	close(ch)
+	return ch
 }
 
 func (c *commandCtx) tmpWritter() *writeCtx {

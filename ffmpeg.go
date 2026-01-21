@@ -27,6 +27,6 @@ type ffmpegBuilder struct {
 // before specifying inputs.
 func New() *beforeReadCtx {
 	return &beforeReadCtx{
-		b: &ffmpegBuilder{beforeRead: []string{}},
+		b: &ffmpegBuilder{beforeRead: []string{"-loglevel", "error", "-y"}},
 	}
 }

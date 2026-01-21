@@ -3,13 +3,6 @@ package fflow
 import "time"
 
 type beforeReadStage interface {
-	// Override adiciona a flag global -y.
-	//
-	// Override adds the global -y flag.
-	Override() beforeReadStage
-
-	// LogLevel(level string) GlobalStage
-
 	// Raw adiciona um argumento bruto ao comando FFmpeg, antes do -i
 	//
 	// Raw adds a raw argument to the FFmpeg command, before -i flag
@@ -46,11 +39,6 @@ func (c *beforeReadCtx) Input(path string) readStagee {
 
 func (c *beforeReadCtx) Raw(value string) beforeReadStage {
 	c.b.beforeRead = append(c.b.beforeRead, value)
-	return c
-}
-
-func (c *beforeReadCtx) Override() beforeReadStage {
-	c.b.beforeRead = append(c.b.beforeRead, "-y")
 	return c
 }
 

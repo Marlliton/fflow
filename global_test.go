@@ -13,12 +13,7 @@ func TestGlobalStage(t *testing.T) {
 			{
 				name:     "Input e Output",
 				builder:  New().Input(in).Output(out),
-				expected: "ffmpeg -i video.mp4 out.mp4",
-			},
-			{
-				name:     "Override",
-				builder:  New().Override().Input(in).Output(out),
-				expected: "ffmpeg -y -i video.mp4 out.mp4",
+				expected: "ffmpeg -loglevel error -y -i video.mp4 out.mp4",
 			},
 		})
 	})

@@ -69,7 +69,7 @@ type complexFilter interface {
 	//
 	// Chain adds a complex filter to the chain,
 	// explicitly connecting inputs and outputs.
-	Chain(in []string, filter AtomicFilter, out []string) complexFilter
+	Chain(in []string, filter []AtomicFilter, out []string) complexFilter
 
 	// Done finaliza a construção dos filtros complexos
 	// e avança para o próximo estágio do pipeline.
@@ -103,7 +103,7 @@ func (sf *simpleFilterCtx) Done() writeStage {
 	return &writeCtx{sf.b}
 }
 
-func (cf *complexFilterCtx) Chain(in []string, filter AtomicFilter, out []string) complexFilter {
+func (cf *complexFilterCtx) Chain(in []string, filter []AtomicFilter, out []string) complexFilter {
 	chain := Chain{Inputs: in, Filter: filter, Output: out}
 	cf.b.filters = append(cf.b.filters, chain)
 	return cf
@@ -131,7 +131,7 @@ func (f AtomicFilter) NeedsComplex() bool {
 
 type Chain struct {
 	Inputs []string
-	Filter AtomicFilter
+	Filter []AtomicFilter
 	Output []string
 }
 
@@ -144,7 +144,12 @@ func (c Chain) String() string {
 		sb.WriteString("]")
 	}
 
-	sb.WriteString(c.Filter.String())
+	for i, f := range c.Filter {
+		if i > 0 {
+			sb.WriteString(",")
+		}
+		sb.WriteString(f.String())
+	}
 
 	for _, out := range c.Output {
 		sb.WriteString("[")
